@@ -1,0 +1,171 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  db:
+    image: postgres:15
+    container_name: humansontology_db
+    environment:
+      POSTGRES_DB: ${DB_NAME:-templates}
+      POSTGRES_USER: ${DB_USER:-template_user}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-template_password}
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - app_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-template_user} -d ${DB_NAME:-templates}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: humansontology_redis
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - app_network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
+
+  # Backend API
+  backend:
+    build:
+      context: ./packages/backend
+      dockerfile: Dockerfile
+    container_name: humansontology_backend
+    environment:
+      # Database
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_NAME: ${DB_NAME:-templates}
+      DB_USER: ${DB_USER:-template_user}
+      DB_PASSWORD: ${DB_PASSWORD:-template_password}
+      DATABASE_URL: postgresql://${DB_USER:-template_user}:${DB_PASSWORD:-template_password}@db:5432/${DB_NAME:-templates}
+
+      # Redis
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_DB: ${REDIS_DB:-0}
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-}
+
+      # JWT
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-your-super-secret-jwt-key-change-in-production}
+      JWT_ALGORITHM: ${JWT_ALGORITHM:-HS256}
+      ACCESS_TOKEN_EXPIRE_MINUTES: ${ACCESS_TOKEN_EXPIRE_MINUTES:-30}
+      REFRESH_TOKEN_EXPIRE_DAYS: ${REFRESH_TOKEN_EXPIRE_DAYS:-7}
+
+      # Application
+      APP_HOST: 0.0.0.0
+      APP_PORT: 8000
+      DEBUG: ${DEBUG:-False}
+      SEED_DATABASE: ${SEED_DATABASE:-true}
+      ENVIRONMENT: ${ENVIRONMENT:-production}
+
+      # CORS
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-http://localhost:3000,http://localhost:5173}
+
+      # Email
+      SMTP_HOST: ${SMTP_HOST:-mailpit}
+      SMTP_PORT: ${SMTP_PORT:-1025}
+      SMTP_USERNAME: ${SMTP_USERNAME:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      SMTP_USE_TLS: ${SMTP_USE_TLS:-False}
+      FROM_EMAIL: ${FROM_EMAIL:-noreply@humansontology.dev}
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3000}
+
+      # OAuth
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
+
+      # File Upload
+      UPLOAD_DIR: ${UPLOAD_DIR:-uploads}
+
+      # Sentry
+      SENTRY_DSN: ${SENTRY_DSN:-}
+      SENTRY_ENABLE_TRACING: ${SENTRY_ENABLE_TRACING:-false}
+      SENTRY_TRACES_SAMPLE_RATE: ${SENTRY_TRACES_SAMPLE_RATE:-0.1}
+      SENTRY_DEBUG: ${SENTRY_DEBUG:-false}
+    ports:
+      - "${BACKEND_PORT:-8000}:8000"
+    volumes:
+      - backend_uploads:/app/uploads
+      - ./packages/backend/data:/app/data
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - app_network
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    restart: unless-stopped
+
+  # Frontend Application
+  frontend:
+    build:
+      context: ./packages/frontend
+      dockerfile: Dockerfile
+    container_name: humansontology_frontend
+    environment:
+      NODE_ENV: ${NODE_ENV:-production}
+      VITE_GRAPHQL_ENDPOINT: ${VITE_GRAPHQL_ENDPOINT:-http://localhost:8000/graphql/}
+      VITE_APP_ENV: ${VITE_APP_ENV:-production}
+      VITE_APP_URL: ${VITE_APP_URL:-http://localhost:3000}
+      VITE_DEBUG: ${VITE_DEBUG:-false}
+    ports:
+      - "${FRONTEND_PORT:-3000}:3000"
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - app_network
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000/health', (r) => r.statusCode === 200 ? process.exit(0) : process.exit(1))"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    restart: unless-stopped
+
+  # MailPit (для разработки - опционально)
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: humansontology_mailpit
+    ports:
+      - "${MAILPIT_SMTP_PORT:-1025}:1025"  # SMTP
+      - "${MAILPIT_WEB_PORT:-8025}:8025"   # Web UI
+    networks:
+      - app_network
+    profiles:
+      - dev
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  backend_uploads:
+    driver: local
+
+networks:
+  app_network:
+    driver: bridge
