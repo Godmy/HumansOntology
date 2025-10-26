@@ -123,17 +123,22 @@ services:
     build:
       context: ./packages/frontend
       dockerfile: Dockerfile
+      args:
+        VITE_GRAPHQL_ENDPOINT: ${VITE_GRAPHQL_ENDPOINT:-http://localhost:8000/graphql}
+        VITE_APP_ENV: ${VITE_APP_ENV:-production}
+        VITE_APP_URL: ${VITE_APP_URL:-http://localhost:5173}
+        VITE_DEBUG: ${VITE_DEBUG:-false}
     container_name: humansontology_frontend
     env_file:
       - .env
     environment:
       NODE_ENV: ${NODE_ENV:-production}
-      VITE_GRAPHQL_ENDPOINT: ${VITE_GRAPHQL_ENDPOINT:-/graphql/}
+      VITE_GRAPHQL_ENDPOINT: ${VITE_GRAPHQL_ENDPOINT:-http://localhost:8000/graphql}
       VITE_APP_ENV: ${VITE_APP_ENV:-production}
       VITE_APP_URL: ${VITE_APP_URL:-http://localhost:5173}
       VITE_DEBUG: ${VITE_DEBUG:-false}
       # Server-side API endpoint for SSR - this may be used by the application code
-      API_BASE_URL: http://backend:8000/graphql/
+      API_BASE_URL: http://backend:8000/graphql
       # Alternative environment variable for server-side API calls
       BACKEND_URL: http://backend:8000
     ports:
