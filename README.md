@@ -56,7 +56,7 @@ docker-compose --profile dev up -d
 
 После запуска будут доступны:
 
-- **Frontend**: http://localhost:3000
+- **Frontend**: http://localhost:5173
 - **Backend API**: http://localhost:8000
 - **GraphQL Playground**: http://localhost:8000/graphql
 - **Backend Health Check**: http://localhost:8000/health
