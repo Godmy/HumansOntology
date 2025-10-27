@@ -59,6 +59,8 @@ docker-compose --profile dev up -d
 - **Frontend**: http://localhost:5173
 - **Backend API**: http://localhost:8000
 - **GraphQL Playground**: http://localhost:8000/graphql
+  - Доступны примеры запросов: http://localhost:8000/graphql/examples
+  - Для разработки можно получить тестовый токен: http://localhost:8000/graphql/test-user-login (только в dev-окружении)
 - **Backend Health Check**: http://localhost:8000/health
 - **MailPit Web UI** (только dev): http://localhost:8025
 
