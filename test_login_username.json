@@ -1,0 +1,1 @@
+{"query": "mutation { login(input: {username: \"admin\", password: \"AdminPass123!\"}) { accessToken tokenType } }"}

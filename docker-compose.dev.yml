@@ -1,0 +1,172 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  db:
+    image: postgres:15
+    container_name: humansontology_db_dev
+    environment:
+      POSTGRES_DB: ${DB_NAME:-templates}
+      POSTGRES_USER: ${DB_USER:-template_user}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-template_password}
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    volumes:
+      - postgres_data_dev:/var/lib/postgresql/data
+    networks:
+      - app_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-template_user} -d ${DB_NAME:-templates}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: humansontology_redis_dev
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis_data_dev:/data
+    networks:
+      - app_network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  # Backend API (Development with hot reload)
+  backend:
+    build:
+      context: ./packages/backend
+      dockerfile: Dockerfile.dev
+    container_name: humansontology_backend_dev
+    environment:
+      # Database
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_NAME: ${DB_NAME:-templates}
+      DB_USER: ${DB_USER:-template_user}
+      DB_PASSWORD: ${DB_PASSWORD:-template_password}
+      DATABASE_URL: postgresql://${DB_USER:-template_user}:${DB_PASSWORD:-template_password}@db:5432/${DB_NAME:-templates}
+
+      # Redis
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_DB: ${REDIS_DB:-0}
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-}
+
+      # JWT
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY}
+      JWT_ALGORITHM: ${JWT_ALGORITHM:-HS256}
+      ACCESS_TOKEN_EXPIRE_MINUTES: ${ACCESS_TOKEN_EXPIRE_MINUTES:-30}
+      REFRESH_TOKEN_EXPIRE_DAYS: ${REFRESH_TOKEN_EXPIRE_DAYS:-7}
+
+      # Application
+      APP_HOST: 0.0.0.0
+      APP_PORT: 8000
+      DEBUG: ${DEBUG:-True}
+      SEED_DATABASE: ${SEED_DATABASE:-true}
+      ENVIRONMENT: ${ENVIRONMENT:-development}
+
+      # CORS
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-http://localhost:5173,http://localhost:3000}
+
+      # Email
+      SMTP_HOST: ${SMTP_HOST:-mailpit}
+      SMTP_PORT: ${SMTP_PORT:-1025}
+      SMTP_USERNAME: ${SMTP_USERNAME:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      SMTP_USE_TLS: ${SMTP_USE_TLS:-False}
+      FROM_EMAIL: ${FROM_EMAIL:-noreply@humansontology.dev}
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:5173}
+
+      # OAuth
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
+
+      # File Upload
+      UPLOAD_DIR: ${UPLOAD_DIR:-uploads}
+
+      # Sentry
+      SENTRY_DSN: ${SENTRY_DSN:-}
+      SENTRY_ENABLE_TRACING: ${SENTRY_ENABLE_TRACING:-false}
+      SENTRY_TRACES_SAMPLE_RATE: ${SENTRY_TRACES_SAMPLE_RATE:-0.1}
+      SENTRY_DEBUG: ${SENTRY_DEBUG:-false}
+    ports:
+      - "${BACKEND_PORT:-8000}:8000"
+    volumes:
+      # Mount source code for hot reload
+      - ./packages/backend:/app
+      - backend_uploads_dev:/app/uploads
+      - /app/__pycache__
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - app_network
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Frontend Application (Development with hot reload)
+  frontend:
+    build:
+      context: ./packages/frontend
+      dockerfile: Dockerfile.dev
+      args:
+        VITE_GRAPHQL_ENDPOINT: ${VITE_GRAPHQL_ENDPOINT:-http://localhost:8000/graphql}
+        VITE_APP_ENV: ${VITE_APP_ENV:-development}
+        VITE_APP_URL: ${VITE_APP_URL:-http://localhost:5173}
+        VITE_DEBUG: ${VITE_DEBUG:-true}
+    container_name: humansontology_frontend_dev
+    environment:
+      NODE_ENV: ${NODE_ENV:-development}
+      VITE_GRAPHQL_ENDPOINT: ${VITE_GRAPHQL_ENDPOINT:-http://localhost:8000/graphql}
+      VITE_APP_ENV: ${VITE_APP_ENV:-development}
+      VITE_APP_URL: ${VITE_APP_URL:-http://localhost:5173}
+      VITE_DEBUG: ${VITE_DEBUG:-true}
+      API_BASE_URL: http://backend:8000/graphql
+      BACKEND_URL: http://backend:8000
+    ports:
+      - "${FRONTEND_PORT:-5173}:5173"
+    volumes:
+      # Mount source code for hot reload
+      - ./packages/frontend:/app
+      - /app/node_modules
+      - /app/.svelte-kit
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - app_network
+
+  # MailPit for email testing in development
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: humansontology_mailpit_dev
+    ports:
+      - "${MAILPIT_SMTP_PORT:-1025}:1025"  # SMTP
+      - "${MAILPIT_WEB_PORT:-8025}:8025"   # Web UI
+    networks:
+      - app_network
+
+volumes:
+  postgres_data_dev:
+    driver: local
+  redis_data_dev:
+    driver: local
+  backend_uploads_dev:
+    driver: local
+
+networks:
+  app_network:
+    driver: bridge

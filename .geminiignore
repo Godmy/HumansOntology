@@ -1,0 +1,48 @@
+# Gemini Ignore
+
+## Принцип работы
+Этот файл, `.geminiignore`, работает так же, как `.gitignore`.
+Все файлы и директории, указанные здесь, будут проигнорированы Gemini при поиске, чтении и других операциях с файловой системой.
+
+## Сгенерированные файлы и зависимости
+node_modules/
+.svelte-kit/
+.houdini/
+build/
+dist/
+.output/
+.vercel/
+.netlify/
+.wrangler/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+## Логи и артефакты тестов
+*.log
+test-results/
+playwright-report/
+coverage/
+htmlcov/
+.coverage
+.pytest_cache/
+.ruff_cache/
+
+## Локальные настройки и окружение
+.env
+.env.*
+!.env.example
+.vscode/
+.idea/
+.claude/
+local_settings.py
+
+## Системные файлы
+.DS_Store
+Thumbs.db
+
+## Базы данных
+*.db
+*.sqlite
+*.sqlite3
