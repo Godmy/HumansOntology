@@ -19,7 +19,8 @@
       "Bash(python3:*)",
       "Bash(echo:*)",
       "Bash(done)",
-      "Bash(timeout 30 docker logs:*)"
+      "Bash(timeout 30 docker logs:*)",
+      "Bash(mkdir:*)"
     ],
     "deny": [],
     "ask": []

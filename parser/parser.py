@@ -1,6 +1,7 @@
 
 import re
 import json
+import os
 
 def parse_line(line):
     """
@@ -30,7 +31,7 @@ def parse_line(line):
     return {
         "id": node_id,
         "name": name,
-        "characteristic": characteristic,
+        # "characteristic": characteristic,
         "children": []
     }
 
@@ -63,7 +64,12 @@ def main():
     """
     Main function to parse the source file and generate JSON.
     """
-    with open('source.txt', 'r', encoding='utf-8') as f:
+    # Get the directory where this script is located
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    source_file = os.path.join(script_dir, 'source.txt')
+    output_file = os.path.join(script_dir, 'output.json')
+
+    with open(source_file, 'r', encoding='utf-8') as f:
         lines = f.readlines()
 
     nodes = []
@@ -71,14 +77,14 @@ def main():
         line = line.strip()
         if not line or line.startswith('#'):
             continue
-        
+
         parsed_node = parse_line(line)
         if parsed_node:
             nodes.append(parsed_node)
 
     tree = build_tree(nodes)
 
-    with open('output.json', 'w', encoding='utf-8') as f:
+    with open(output_file, 'w', encoding='utf-8') as f:
         json.dump(tree, f, ensure_ascii=False, indent=2)
 
 if __name__ == '__main__':
