@@ -91,6 +91,11 @@ services:
       # File Upload
       UPLOAD_DIR: ${UPLOAD_DIR:-uploads}
 
+      # Logging
+      LOG_FILE_ENABLED: "true"
+      LOG_SUPPRESS_UVICORN_ACCESS: "true"
+      LOG_CONSOLE_FORMAT: "%(asctime)s %(levelname)s [%(request_id)s] %(message)s"
+
       # Sentry
       SENTRY_DSN: ${SENTRY_DSN:-}
       SENTRY_ENABLE_TRACING: ${SENTRY_ENABLE_TRACING:-false}
@@ -101,6 +106,7 @@ services:
     volumes:
       # Mount source code for hot reload
       - ./packages/backend:/app
+      - ./parser:/parser
       - backend_uploads_dev:/app/uploads
       - /app/__pycache__
     depends_on:
@@ -158,6 +164,12 @@ services:
       - "${MAILPIT_WEB_PORT:-8025}:8025"   # Web UI
     networks:
       - app_network
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8025/api/v1/info"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
 
 volumes:
   postgres_data_dev:

@@ -1,0 +1,54 @@
+{
+  "name": "Gemini",
+  "role": "Junior Programmer",
+  "status": "on_trial",
+  "start_date": "2025-10-27",
+  "skills": {
+    "python": {
+      "score": 0,
+      "max_score": 10,
+      "tasks_completed": 0,
+      "notes": "Еще не тестировалось"
+    },
+    "svelte": {
+      "score": 0,
+      "max_score": 10,
+      "tasks_completed": 0,
+      "notes": "Еще не тестировалось"
+    },
+    "documentation": {
+      "score": 0,
+      "max_score": 10,
+      "tasks_completed": 0,
+      "notes": "Еще не тестировалось"
+    },
+    "code_quality": {
+      "score": 0,
+      "max_score": 10,
+      "tasks_completed": 0,
+      "notes": "Еще не тестировалось"
+    },
+    "task_speed": {
+      "score": 0,
+      "max_score": 10,
+      "tasks_completed": 0,
+      "notes": "Еще не тестировалось"
+    },
+    "task_understanding": {
+      "score": 0,
+      "max_score": 10,
+      "tasks_completed": 0,
+      "notes": "Еще не тестировалось"
+    }
+  },
+  "statistics": {
+    "total_tasks": 0,
+    "completed_tasks": 0,
+    "failed_tasks": 0,
+    "in_progress_tasks": 0,
+    "average_score": 0
+  },
+  "strengths": [],
+  "weaknesses": [],
+  "last_updated": "2025-10-27"
+}

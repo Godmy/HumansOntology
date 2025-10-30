@@ -1,0 +1,64 @@
+{
+  "name": "Qwen",
+  "role": "Junior Programmer",
+  "status": "needs_supervision",
+  "start_date": "2025-10-27",
+  "skills": {
+    "python": {
+      "score": 0,
+      "max_score": 10,
+      "tasks_completed": 0,
+      "notes": "Еще не тестировалось"
+    },
+    "svelte": {
+      "score": 4,
+      "max_score": 10,
+      "tasks_completed": 1,
+      "notes": "Создает компоненты с правильной структурой, но не проверяет работоспособность. Удаляет код преждевременно."
+    },
+    "documentation": {
+      "score": 8,
+      "max_score": 10,
+      "tasks_completed": 1,
+      "notes": "Отличная документация - детальная, структурированная, с примерами"
+    },
+    "code_quality": {
+      "score": 5,
+      "max_score": 10,
+      "tasks_completed": 1,
+      "notes": "Код качественный, но нарушает работоспособность проекта. Не проверяет сборку."
+    },
+    "task_speed": {
+      "score": 6,
+      "max_score": 10,
+      "tasks_completed": 1,
+      "notes": "Работает быстро, но не завершает задачу до конца"
+    },
+    "task_understanding": {
+      "score": 4,
+      "max_score": 10,
+      "tasks_completed": 1,
+      "notes": "Понимает архитектурные паттерны, но не понимает критичность работоспособности проекта"
+    }
+  },
+  "statistics": {
+    "total_tasks": 1,
+    "completed_tasks": 0,
+    "failed_tasks": 1,
+    "in_progress_tasks": 0,
+    "average_score": 5.4
+  },
+  "strengths": [
+    "Отличная документация",
+    "Понимание архитектурных паттернов",
+    "Создание качественных TypeScript компонентов"
+  ],
+  "weaknesses": [
+    "КРИТИЧНО: Не проверяет работоспособность после изменений",
+    "КРИТИЧНО: Удаляет рабочий код до завершения миграции",
+    "Не тестирует сборку проекта",
+    "Не завершает задачи до конца",
+    "Over-engineering - создает сложную архитектуру не адаптируя существующий код"
+  ],
+  "last_updated": "2025-10-27"
+}

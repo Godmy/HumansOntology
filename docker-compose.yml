@@ -93,6 +93,11 @@ services:
       # File Upload
       UPLOAD_DIR: ${UPLOAD_DIR:-uploads}
 
+      # Logging
+      LOG_FILE_ENABLED: "true"
+      LOG_SUPPRESS_UVICORN_ACCESS: "true"
+      LOG_CONSOLE_FORMAT: "%(asctime)s %(levelname)s [%(request_id)s] %(message)s"
+
       # Sentry
       SENTRY_DSN: ${SENTRY_DSN:-}
       SENTRY_ENABLE_TRACING: ${SENTRY_ENABLE_TRACING:-false}
@@ -103,6 +108,8 @@ services:
     volumes:
       - backend_uploads:/app/uploads
       - ./packages/backend/data:/app/data
+      - ./parser:/parser
+      - backend_logs:/app/logs
     depends_on:
       db:
         condition: service_healthy
@@ -156,25 +163,14 @@ services:
       start_period: 40s
     restart: unless-stopped
 
-  # MailPit (для разработки - опционально)
-  mailpit:
-    image: axllent/mailpit:latest
-    container_name: humansontology_mailpit
-    ports:
-      - "${MAILPIT_SMTP_PORT:-1025}:1025"  # SMTP
-      - "${MAILPIT_WEB_PORT:-8025}:8025"   # Web UI
-    networks:
-      - app_network
-    profiles:
-      - dev
-    restart: unless-stopped
-
 volumes:
   postgres_data:
     driver: local
   redis_data:
     driver: local
   backend_uploads:
+    driver: local
+  backend_logs:
     driver: local
 
 networks:

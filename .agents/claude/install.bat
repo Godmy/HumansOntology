@@ -1,0 +1,1 @@
+yarn global add @anthropic-ai/claude-code

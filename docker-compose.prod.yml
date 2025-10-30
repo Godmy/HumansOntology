@@ -90,6 +90,11 @@ services:
       # File Upload
       UPLOAD_DIR: ${UPLOAD_DIR:-uploads}
 
+      # Logging
+      LOG_FILE_ENABLED: "true"
+      LOG_SUPPRESS_UVICORN_ACCESS: "true"
+      LOG_CONSOLE_FORMAT: "%(asctime)s %(levelname)s [%(request_id)s] %(message)s"
+
       # Sentry
       SENTRY_DSN: ${SENTRY_DSN}
       SENTRY_ENABLE_TRACING: ${SENTRY_ENABLE_TRACING:-true}
@@ -97,6 +102,7 @@ services:
       SENTRY_DEBUG: False
     volumes:
       - backend_uploads_prod:/app/uploads
+      - backend_logs_prod:/app/logs
     depends_on:
       db:
         condition: service_healthy
@@ -167,6 +173,8 @@ volumes:
   redis_data_prod:
     driver: local
   backend_uploads_prod:
+    driver: local
+  backend_logs_prod:
     driver: local
 
 networks:
